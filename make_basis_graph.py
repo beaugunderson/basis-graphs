@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf8
 
 from __future__ import division
 
@@ -14,9 +15,9 @@ from matplotlib.ticker import FuncFormatter
 
 
 def shorten_date(x, position):
-    x_time = datetime(2000, 1, 15) + timedelta(minutes=int(x) - (60 * 7))
+    x_time = datetime(2000, 1, 15) + timedelta(minutes=int(x))
 
-    return x_time.strftime('%I:%M%p').lower().lstrip('0')
+    return x_time.strftime('%I:%M%p').lower().lstrip('0').replace(':00', '')
 
 ShorterDateFormatter = FuncFormatter(shorten_date)
 
@@ -27,6 +28,9 @@ def graph_basis(filename):
                                       parse_dates=[0],
                                       index_col='Date',
                                       infer_datetime_format=True)
+
+    # UTC → PST
+    data.index = data.index - timedelta(hours=7)
 
     print 'Grouping...'
     groups = data.groupby(pandas.Grouper(freq='24h'))
@@ -65,6 +69,7 @@ def graph_basis(filename):
                         linewidth=1.0,
                         color='indianred',
                         ci=75,
+                        # err_style='unit_traces',
                         estimator=scipy.stats.nanmean)
 
     ax.xaxis.set_ticks(numpy.arange(0, 1440, 1440 / 24))
@@ -74,6 +79,7 @@ def graph_basis(filename):
                    value='BPM',
                    linewidth=1.0,
                    ci=75,
+                   # err_style='unit_traces',
                    estimator=scipy.stats.nanmean)
 
     plt.show()
